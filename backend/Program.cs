@@ -1,6 +1,8 @@
 namespace backend;
 
+using backend.Hubs;
 using backend.Endpoints;
+using backend.Services;
 
 public class program
 {
@@ -8,9 +10,14 @@ public class program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddSingleton<SystemInfoService>();
+        builder.Services.AddHostedService<SystemMonitorWorker>();
+        builder.Services.AddSignalR();
+
         var app = builder.Build();
 
         ConfigureEndpoints(app);
+        ConfigureMapExtensions(app);
         
         app.Run();
     }
@@ -18,5 +25,10 @@ public class program
     private static void ConfigureEndpoints(WebApplication app)
     {
         app.MapEndpoints();
+    }
+
+    private static void ConfigureMapExtensions(WebApplication app)
+    {
+        app.MapProjectHubs();
     }
 }
