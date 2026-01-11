@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/services/signalr_service.dart';
 import '../services/api_service.dart';
 import '../widgets/action_buttons.dart';
 
@@ -11,18 +12,27 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final ApiService _apiService = ApiService();
-  String _displayText = "No data yet";
-  bool _isLoading = false;
+  final SignalRService _signalRService = SignalRService();
+  String _displayText = "Connecting to Linux";
+  final bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _signalRService.onDataReceived = (data) {
+      if (mounted) { // Checking whether the user has closed the screen
+        setState(() {
+          _displayText =
+          "OS: ${data['os']} | CPU: ${data['cpu']} | RAM: ${data['ram']}";
+        });
+      }
+    };
+
+    _signalRService.startConnection();
+  }
+  
   void _fetchInfo() async {
-    setState(() => _isLoading = true);
-
-    final result = await _apiService.getSystemInfo();
-
-    setState(() {
-      _displayText = "OS: ${result['os'] ?? 'N/A'} | CPU: ${result['cpu'] ?? 'N/A'}";
-      _isLoading = false;
-    });
+    
   }
 
   @override
