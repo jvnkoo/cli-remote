@@ -21,11 +21,11 @@ class ArchRemoteApp extends StatelessWidget {
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
       debugShowCheckedModeBanner: false,
-      home: const MainScreen(),
       theme: const CupertinoThemeData(
         brightness: Brightness.dark,
         primaryColor: CupertinoColors.systemIndigo,
       ),
+      home: const RootScreen(),
     );
   }
 }
