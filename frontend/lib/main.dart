@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:device_preview/device_preview.dart';
 import 'screens/main_screen.dart';
 
 void main() {
-  runApp(const ArchRemoteApp());
+  runApp(
+    DevicePreview(
+      enabled: true,
+      builder: (context) => const ArchRemoteApp(),
+    ),
+  );
 }
 
 class ArchRemoteApp extends StatelessWidget {
@@ -11,6 +17,8 @@ class ArchRemoteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
       debugShowCheckedModeBanner: false,
       title: 'LinuxRemote',
       theme: ThemeData(useMaterial3: true, brightness: Brightness.dark), 
