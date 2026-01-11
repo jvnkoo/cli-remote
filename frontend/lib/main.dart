@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:device_preview/device_preview.dart';
 import 'screens/main_screen.dart';
+import 'screens/root_screen.dart';
 
 void main() {
   runApp(
@@ -16,13 +17,15 @@ class ArchRemoteApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return CupertinoApp(
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
       debugShowCheckedModeBanner: false,
-      title: 'LinuxRemote',
-      theme: ThemeData(useMaterial3: true, brightness: Brightness.dark), 
       home: const MainScreen(),
+      theme: const CupertinoThemeData(
+        brightness: Brightness.dark,
+        primaryColor: CupertinoColors.systemIndigo,
+      ),
     );
   }
 }
