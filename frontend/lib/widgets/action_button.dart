@@ -5,9 +5,11 @@ class ActionButton extends StatelessWidget {
     super.key,
     required this.enabled,
     required this.onTap,
+    required this.text
   });
   final bool enabled;
   final VoidCallback onTap;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,13 @@ class ActionButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               padding: EdgeInsets.zero,
               onPressed: enabled ? onTap : null,
-              child: const Text('Check System Info'),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: enabled ? CupertinoColors.white : CupertinoColors.inactiveGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],

@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:frontend/services/signalr_service.dart';
 import '../services/api_service.dart';
-import '../widgets/action_buttons.dart';
+import '../widgets/action_button.dart';
+import '../widgets/terminal.dart';
+import '../widgets/navigation_bar.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,45 +15,82 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final ApiService _apiService = ApiService();
   final SignalRService _signalRService = SignalRService();
-  String _displayText = "Connecting to Linux";
+  String _displayText = "Connecting to Linux Server...";
   final bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _signalRService.onDataReceived = (data) {
-      if (mounted) { // Checking whether the user has closed the screen
+      if (mounted) {
+        // Checking whether the user has closed the screen
         setState(() {
           _displayText =
-          "OS: ${data['os']} | CPU: ${data['cpu']} | RAM: ${data['ram']}";
+              "OS: ${data['os']} | CPU: ${data['cpu']} | RAM: ${data['ram']}";
         });
       }
     };
 
     _signalRService.startConnection();
   }
-  
-  void _fetchInfo() async {
-    
-  }
+
+  void _fetchInfo() async {}
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Linux Remote")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_displayText, style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 30),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ActionButtons(
-              enabled: true,
-              onTap: _fetchInfo,
-            ),
-          ],
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text("Linux Remote"),
+        backgroundColor: CupertinoColors.black,
+        border: null, 
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            children: [
+              CupertinoListSection.insetGrouped(
+                margin: const EdgeInsets.all(16),
+                children: [
+                  CupertinoListTile(
+                    leading: const Icon(CupertinoIcons.info),
+                    title: Text(
+                      _displayText,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Terminal(),
+                        const SizedBox(height: 10),
+                        Row (
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: _isLoading
+                                  ? const CupertinoActivityIndicator()
+                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _isLoading
+                                  ? const CupertinoActivityIndicator()
+                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'stop'),
+                            ),
+                          ],
+                        )
+                      ]
+                  )
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
