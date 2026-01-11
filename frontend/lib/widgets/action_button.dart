@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
-class ActionButtons extends StatelessWidget {
-  const ActionButtons({
+class ActionButton extends StatelessWidget {
+  const ActionButton({
     super.key,
     required this.enabled,
-    required this.onTap
+    required this.onTap,
   });
   final bool enabled;
   final VoidCallback onTap;
@@ -12,14 +12,19 @@ class ActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FractionallySizedBox(
-      widthFactor: 0.5, 
+      widthFactor: 1, 
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
             width: double.infinity, 
             height: 50,
-            child: ElevatedButton(
+            child: CupertinoButton(
+              color: enabled
+                ? CupertinoColors.tertiarySystemFill
+                : CupertinoColors.quaternarySystemFill,
+              borderRadius: BorderRadius.circular(12),
+              padding: EdgeInsets.zero,
               onPressed: enabled ? onTap : null,
               child: const Text('Check System Info'),
             ),
