@@ -29,4 +29,16 @@ class SignalRService {
       await _hubConnection.start();
     }
   }
+  
+  Future<String> sendCommand(String commandText) async {
+    if (_hubConnection.state == HubConnectionState.connected) {
+      try {
+        final String result = await _hubConnection.invoke("ExecuteCli", args: [commandText]);
+        return result;
+      } catch (e) {
+        return e.toString();
+      }
+    }
+    return "Connection is not open";
+  }
 }
