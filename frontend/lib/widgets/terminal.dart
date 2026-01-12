@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../services/signalr_service.dart';
 
 class Terminal extends StatefulWidget {
   const Terminal({super.key});
@@ -8,6 +9,7 @@ class Terminal extends StatefulWidget {
 }
 
 class _TerminalState extends State<Terminal> {
+  final SignalRService _signalRService = SignalRService();
   final List<String> _commandHistory = [];
   final TextEditingController _inputController =
       TextEditingController(); // Controls input field
@@ -23,7 +25,7 @@ class _TerminalState extends State<Terminal> {
     fontSize: 14,
   );
 
-  void _executeCommand(String command) {
+  void _executeCommand(String command) async {
     if (command.isEmpty || !mounted) return;
     final now = DateTime.now();
     final timeStr = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
@@ -33,6 +35,14 @@ class _TerminalState extends State<Terminal> {
       _commandHistory.add('$timeStr|$_prompt$command');
       _inputController.clear();
     });
+    
+    final String result = await _signalRService.sendCommand(command);
+    
+    if (mounted) {
+      setState(() {
+        _commandHistory.add('$timeStr|$_prompt$result');
+      });
+    }
 
     // Wait for the frame with the new line to finish rendering
     WidgetsBinding.instance.addPostFrameCallback((_) {
