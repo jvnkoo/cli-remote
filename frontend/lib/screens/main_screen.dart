@@ -39,7 +39,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text("Linux Remote"),
+        middle: Text("Cli Remote"),
         backgroundColor: CupertinoColors.black,
         border: null, 
       ),
