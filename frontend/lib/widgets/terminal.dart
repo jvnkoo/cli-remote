@@ -14,7 +14,8 @@ class _TerminalState extends State<Terminal> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocus =
       FocusNode(); // A focus node that ensures that the keyboard is active and the cursor is in the input field
-  static const String _prompt = r'$ '; // raw string
+  static const String _prompt = '\n~ ❯ ';
+  static const String _inputPrompt = r'> ';
 
   final TextStyle _terminalStyle = const TextStyle(
     fontFamily: 'Courier',
@@ -24,9 +25,12 @@ class _TerminalState extends State<Terminal> {
 
   void _executeCommand(String command) {
     if (command.isEmpty || !mounted) return;
+    final now = DateTime.now();
+    final timeStr = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
     setState(() {
-      _commandHistory.add('$_prompt$command');
+      // Save with separator for better parse
+      _commandHistory.add('$timeStr|$_prompt$command');
       _inputController.clear();
     });
 
@@ -86,28 +90,42 @@ class _TerminalState extends State<Terminal> {
               children: [
                 // Command history display
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(2.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: CupertinoColors.systemGrey.withOpacity(0.5),
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _commandHistory.length,
-                      itemBuilder: (context, index) {
-                        return Text(
-                          _commandHistory[index],
-                          style: _terminalStyle,
-                        );
-                      },
-                    ),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _commandHistory.length,
+                    itemBuilder: (context, index) {
+                      final entry = _commandHistory[index];
+                      final parts = entry.split('|');
+                      final time = parts[0];
+                      final command = parts.length > 1 ? parts[1] : '';
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              // time
+                              TextSpan(
+                                text: '$time ',
+                                style: _terminalStyle.copyWith(
+                                  fontSize: 10, 
+                                  color: CupertinoColors.systemGrey, 
+                                ),
+                              ),
+                              // main command
+                              TextSpan(
+                                text: command,
+                                style: _terminalStyle, 
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 // Input line
                 Container(
                   margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
@@ -117,13 +135,13 @@ class _TerminalState extends State<Terminal> {
                   ),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: CupertinoColors.systemGrey.withOpacity(0.65),
+                      color: CupertinoColors.systemGrey.withValues(alpha: 0.65),
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Text(_prompt, style: _terminalStyle),
+                      Text(_inputPrompt, style: _terminalStyle),
                       Expanded(
                         child: CupertinoTextField(
                           controller: _inputController,
