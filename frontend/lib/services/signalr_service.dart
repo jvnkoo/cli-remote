@@ -1,15 +1,18 @@
 import 'package:signalr_core/signalr_core.dart';
 
 class SignalRService {
+  static final SignalRService _instance = SignalRService._internal();
+  factory SignalRService() => _instance;
+
   late HubConnection _hubConnection;
   void Function(Map<String, dynamic>)? onDataReceived;
-
-  SignalRService() {
+  
+  SignalRService._internal() {
     _hubConnection = HubConnectionBuilder()
         .withUrl(
-          "http://localhost:5050/systemHub",
-          HttpConnectionOptions(logging: (level, message) => print(message)),
-        )
+      "http://localhost:5050/systemHub",
+      HttpConnectionOptions(logging: (level, message) => print(message)),
+    )
         .build();
 
     _hubConnection.on('receiveStatus', (arguments) {

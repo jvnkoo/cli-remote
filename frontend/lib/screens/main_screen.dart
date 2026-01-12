@@ -3,7 +3,6 @@ import 'package:frontend/services/signalr_service.dart';
 import '../services/api_service.dart';
 import '../widgets/action_button.dart';
 import '../widgets/terminal.dart';
-import '../widgets/navigation_bar.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -75,13 +74,13 @@ class _MainScreenState extends State<MainScreen> {
                             Expanded(
                               child: _isLoading
                                   ? const CupertinoActivityIndicator()
-                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
+                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'stop'),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: _isLoading
                                   ? const CupertinoActivityIndicator()
-                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'stop'),
+                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
                             ),
                           ],
                         )

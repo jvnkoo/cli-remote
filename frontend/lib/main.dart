@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:device_preview/device_preview.dart';
-import 'screens/main_screen.dart';
 import 'screens/root_screen.dart';
 
 void main() {
