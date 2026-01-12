@@ -1,8 +1,5 @@
 namespace backend.Services;
 
-using CliWrap;
-using CliWrap.Buffered;
-
 public class SystemInfoService
 {
     public string GetPrettyOsName()

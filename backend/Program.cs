@@ -11,6 +11,7 @@ public class program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddSingleton<SystemInfoService>();
+        builder.Services.AddSingleton<CliService>();
         builder.Services.AddHostedService<SystemMonitorWorker>();
         builder.Services.AddSignalR();
 

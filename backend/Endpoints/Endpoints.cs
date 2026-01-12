@@ -1,15 +1,16 @@
 namespace backend.Endpoints;
 
+using backend.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 public static class Endpoints
 {
     public static void MapEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/system", () => new
+        app.MapGet("/api/cli", async (CliService cliService) => 
         {
-            os = "Arch Linux", 
-            cpu = "15%"
+            var result = await cliService.RunCommandAsync("ls");
+            return Results.Ok(result);
         });
     }
 }
