@@ -38,58 +38,56 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      // Added backgroundColor to match terminal look
+      backgroundColor: CupertinoColors.black,
       navigationBar: const CupertinoNavigationBar(
-        middle: Text("Cli Remote"),
+        middle: Text("Cli Remote", style: TextStyle(color: CupertinoColors.white)),
         backgroundColor: CupertinoColors.black,
-        border: null, 
+        border: null,
       ),
       child: SafeArea(
-        child: Center(
-          child: Column(
-            children: [
-              CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.all(16),
+        child: Column( // Removed Center, it can interfere with Expanded
+          children: [
+            CupertinoListSection.insetGrouped(
+              margin: const EdgeInsets.all(16),
+              children: [
+                CupertinoListTile(
+                  leading: const Icon(CupertinoIcons.info),
+                  title: Text(
+                    _displayText,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            // Use Expanded so the Terminal takes up all remaining space
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Terminal(),
+              ),
+            ),
+            // Bottom buttons area
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  CupertinoListTile(
-                    leading: const Icon(CupertinoIcons.info),
-                    title: Text(
-                      _displayText,
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                  Expanded(
+                    child: _isLoading
+                        ? const CupertinoActivityIndicator()
+                        : ActionButton(enabled: true, onTap: _fetchInfo, text: 'stop'),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _isLoading
+                        ? const CupertinoActivityIndicator()
+                        : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Terminal(),
-                        const SizedBox(height: 10),
-                        Row (
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: _isLoading
-                                  ? const CupertinoActivityIndicator()
-                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'stop'),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _isLoading
-                                  ? const CupertinoActivityIndicator()
-                                  : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
-                            ),
-                          ],
-                        )
-                      ]
-                  )
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
