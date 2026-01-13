@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'main_screen.dart';
+import 'settings_screen.dart';
 import '../widgets/tab_bar.dart' as custom;
 
 class RootScreen extends StatefulWidget {
@@ -19,10 +20,11 @@ class _RootScreenState extends State<RootScreen> {
           case 0:
             return const MainScreen();
           case 1:
-            return const CupertinoPageScaffold(
-              navigationBar: CupertinoNavigationBar(middle: Text("Settings")),
-              child: Center(child: Text("Settings Screen")),
-            );
+            // return const CupertinoPageScaffold(
+            //   navigationBar: CupertinoNavigationBar(middle: Text("Settings")),
+            //   child: Center(child: Text("Settings Screen")),
+            // );
+            return const SettingsScreen();
           default:
             return const MainScreen();
         }
