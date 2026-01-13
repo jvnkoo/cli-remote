@@ -30,15 +30,21 @@ class SignalRService {
     }
   }
   
-  Future<String> sendCommand(String commandText) async {
+  Future<String> sendCommand(String commandText, bool useSudo) async {
     if (_hubConnection.state == HubConnectionState.connected) {
       try {
-        final String result = await _hubConnection.invoke("ExecuteCli", args: [commandText]);
+        final String result = await _hubConnection.invoke("ExecuteCli", args: [commandText, useSudo]);
         return result;
       } catch (e) {
         return e.toString();
       }
     }
     return "Connection is not open";
+  }
+  
+  Future<void> updateSudoPassword(String password) async {
+    if (_hubConnection.state == HubConnectionState.connected) {
+      await _hubConnection.invoke("UpdateSudoPassword", args: [password]);
+    }
   }
 }

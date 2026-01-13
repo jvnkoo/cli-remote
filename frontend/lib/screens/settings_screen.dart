@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:frontend/services/signalr_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -9,6 +10,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreen extends State<SettingsScreen> {
+  final SignalRService _signalRService = SignalRService();
   final _storage = const FlutterSecureStorage();
   final TextEditingController _sudoController = TextEditingController();
   bool _lockSudo = false;
@@ -16,6 +18,20 @@ class _SettingsScreen extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSudoPassword(); 
+  }
+
+  Future<void> _loadSudoPassword() async {
+    String? savedPass = await _storage.read(key: 'sudo_password');
+    if (savedPass != null) {
+      _sudoController.text = savedPass;
+      _signalRService.updateSudoPassword(savedPass); 
+    }
+  }
+
+  Future<void> _saveSudoPassword(String value) async {
+    await _storage.write(key: 'sudo_password', value: value);
+    _signalRService.updateSudoPassword(value);
   }
 
   @override
@@ -70,6 +86,7 @@ class _SettingsScreen extends State<SettingsScreen> {
                         : CupertinoColors.quaternarySystemFill, 
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  onChanged: _saveSudoPassword,
                 ),
               ),
             ],

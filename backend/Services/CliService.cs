@@ -7,9 +7,24 @@ public class CliService
 {
     // Save current directory in memory
     private string _currentDirectory = Directory.GetCurrentDirectory();
+    private string? _sudoPassword; // Save in memory only before restart
     
-    public async Task<String> RunCommandAsync(string command)
+    public void SetSudoPassword(string password)
     {
+        _sudoPassword = password;
+    }
+    
+    public async Task<String> RunCommandAsync(string command, bool useSudo = false)
+    {
+        if (useSudo)
+        {
+            if (string.IsNullOrEmpty(_sudoPassword))
+            {
+                return "[ERROR]: Sudo password not set. Use 'Set Password' first.";
+            }
+            command = $"echo '{_sudoPassword}' | sudo -S {command}";
+        }
+        
         if (command.StartsWith("cd "))
         {
             return ChangeDirectory(command);
