@@ -72,7 +72,7 @@ class _TerminalState extends State<Terminal> {
     _addLog('$_prompt$command');
     _inputController.clear();
 
-    final response = await _signalRService.sendCommand(command);
+    final response = await _signalRService.sendCommand(command, command.startsWith("sudo"));
     if (mounted) _addLog('$_prompt$response');
     _inputFocus.requestFocus();
   }
@@ -120,7 +120,7 @@ class _TerminalState extends State<Terminal> {
       margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: CupertinoColors.systemGrey.withOpacity(0.5)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
