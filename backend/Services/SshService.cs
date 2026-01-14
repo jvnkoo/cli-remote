@@ -9,10 +9,21 @@ public class SshService
     private ShellStream? _shellStream;
     private string _currentDirectory = "";
     private string? _sudoPassword;
+    
+    private string _host;
+    private string _user;
+    private string _pass;
 
-    private readonly string _host;
-    private readonly string _user;
-    private readonly string _pass;
+    public void SetConnectionData(string host, string user, string pass)
+    {
+        _host = host;
+        _user = user;
+        _pass = pass;
+        
+        Dispose();
+        _client = null;
+        _shellStream = null;
+    }
 
     public void SetSudoPassword(string password) => _sudoPassword = password;
 
@@ -121,7 +132,9 @@ public class SshService
     public void Dispose()
     {
         _shellStream?.Dispose();
+        _shellStream = null;
         _client?.Disconnect();
         _client?.Dispose();
+        _client = null;
     }
 }
