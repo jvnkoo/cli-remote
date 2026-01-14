@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:frontend/services/signalr_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../widgets/settings_input_field.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,20 +13,20 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreen extends State<SettingsScreen> {
   final SignalRService _signalRService = SignalRService();
   final _storage = const FlutterSecureStorage();
+
   final TextEditingController _sudoController = TextEditingController();
-  bool _lockSudo = false;
 
   @override
   void initState() {
     super.initState();
-    _loadSudoPassword(); 
+    _loadSudoPassword();
   }
 
   Future<void> _loadSudoPassword() async {
     String? savedPass = await _storage.read(key: 'sudo_password');
     if (savedPass != null) {
       _sudoController.text = savedPass;
-      _signalRService.updateSudoPassword(savedPass); 
+      _signalRService.updateSudoPassword(savedPass);
     }
   }
 
@@ -48,46 +49,17 @@ class _SettingsScreen extends State<SettingsScreen> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
+          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+          child: Column(
             children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: Icon(
-                  _lockSudo
-                      ? CupertinoIcons.lock_open_fill
-                      : CupertinoIcons.lock_fill,
-                  color: _lockSudo
-                      ? CupertinoColors.activeGreen
-                      : CupertinoColors.systemGrey,
-                ),
-                onPressed: () => setState(() => _lockSudo = !_lockSudo),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: CupertinoTextField(
-                  controller: _sudoController,
-                  placeholder: "Sudo Password",
-                  placeholderStyle: TextStyle(
-                    fontSize: 14,
-                    color: _lockSudo
-                        ? CupertinoColors.systemGrey
-                        : CupertinoColors.systemGrey.withValues(alpha: 0.3),
-                  ),
-                  obscureText: true,
-                  enabled: _lockSudo,
-                  style: TextStyle(
-                    color: _lockSudo ? CupertinoColors.white : CupertinoColors.systemGrey,
-                    fontSize: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _lockSudo
-                        ? CupertinoColors.darkBackgroundGray
-                        : CupertinoColors.quaternarySystemFill, 
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  onChanged: _saveSudoPassword,
-                ),
+              SettingsInputField(
+                label: "Security",
+                controller: _sudoController,
+                placeholder: "Sudo Password",
+                icon: CupertinoIcons.lock_fill,
+                obscureText: true,
+                onChanged: (val) => _saveSudoPassword(val),
               ),
             ],
           ),
