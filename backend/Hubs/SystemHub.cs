@@ -5,22 +5,22 @@ using Microsoft.AspNetCore.SignalR;
 
 public class SystemHub : Hub
 {
-    private readonly CliService _cliService;
+    private readonly SshService _sshService;
 
-    public SystemHub(CliService cliService)
+    public SystemHub(SshService sshService)
     {
-        _cliService = cliService;
+        _sshService = sshService;
     }
     
     public async Task<String> ExecuteCli(string command, bool useSudo)
     {
-        string result = await _cliService.RunCommandAsync(command, useSudo);
+        string result = await _sshService.RunCommandAsync(command, useSudo);
 
         return result;
     }
     
     public void UpdateSudoPassword(string password)
     {
-        _cliService.SetSudoPassword(password);
+        _sshService.SetSudoPassword(password);
     }
 }

@@ -3,6 +3,9 @@ namespace backend.Services;
 using CliWrap;
 using CliWrap.Buffered;
 
+/// <summary>
+/// the old way of interacting with cli(now use ssh)
+/// </summary>
 public class CliService
 {
     // Save current directory in memory
