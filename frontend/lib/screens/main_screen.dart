@@ -29,8 +29,6 @@ class _MainScreenState extends State<MainScreen> {
         });
       }
     };
-
-    _signalRService.startConnection();
   }
 
   void _fetchInfo() async {}

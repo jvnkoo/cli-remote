@@ -23,4 +23,9 @@ public class SystemHub : Hub
     {
         _sshService.SetSudoPassword(password);
     }
+    
+    public void UpdateConnectionData(string host, string user, string pass)
+    {
+        _sshService.SetConnectionData(host, user, pass);
+    }
 }
