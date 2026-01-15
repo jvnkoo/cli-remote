@@ -14,7 +14,9 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final ApiService _apiService = ApiService();
   final SignalRService _signalRService = SignalRService();
-  String _displayText = "Connecting to Linux Server...";
+
+  String _displayText = "Server Disconnected.";
+  bool _isConnecting = true;
   final bool _isLoading = false;
 
   @override
@@ -24,8 +26,27 @@ class _MainScreenState extends State<MainScreen> {
       if (mounted) {
         // Checking whether the user has closed the screen
         setState(() {
+          _isConnecting = false;
           _displayText =
               "OS: ${data['os']} | CPU: ${data['cpu']} | RAM: ${data['ram']}";
+        });
+      }
+    };
+
+    _signalRService.onConnectionSuccess = () {
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _displayText = "Connected. Waiting for data...";
+        });
+      }
+    };
+
+    _signalRService.onConnectionLost = () {
+      if (mounted) {
+        setState(() {
+          _isConnecting = true;
+          _displayText = "Server Disconnected. Retrying...";
         });
       }
     };
@@ -39,53 +60,62 @@ class _MainScreenState extends State<MainScreen> {
       // Added backgroundColor to match terminal look
       backgroundColor: CupertinoColors.black,
       navigationBar: const CupertinoNavigationBar(
-        middle: Text("Cli Remote", style: TextStyle(color: CupertinoColors.white)),
+        middle: Text(
+          "Cli Remote",
+          style: TextStyle(color: CupertinoColors.white),
+        ),
         backgroundColor: CupertinoColors.black,
         border: null,
       ),
       child: SafeArea(
-        child: Column( // Removed Center, it can interfere with Expanded
-          children: [
-            CupertinoListSection.insetGrouped(
-              margin: const EdgeInsets.all(16),
-              children: [
-                CupertinoListTile(
-                  leading: const Icon(CupertinoIcons.info),
-                  title: Text(
-                    _displayText,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-            // Use Expanded so the Terminal takes up all remaining space
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Terminal(),
-              ),
-            ),
-            // Bottom buttons area
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Expanded(
+          child: Column(
+            // Removed Center, it can interfere with Expanded
+            children: [
+              CupertinoListSection.insetGrouped(
+                margin: const EdgeInsets.all(16),
                 children: [
-                  Expanded(
-                    child: _isLoading
-                        ? const CupertinoActivityIndicator()
-                        : ActionButton(enabled: true, onTap: _fetchInfo, text: 'stop'),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _isLoading
+                  CupertinoListTile(
+                    leading: _isConnecting
                         ? const CupertinoActivityIndicator()
                         : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
+                        : const Icon(CupertinoIcons.info),
+                    title: Text(
+                      _displayText,
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              // Use Expanded so the Terminal takes up all remaining space
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+              ),
+              // Bottom buttons area
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: _isLoading
+                          ? const CupertinoActivityIndicator()
+                          : ActionButton(
+                              enabled: true,
+                              onTap: _fetchInfo,
+                              text: 'stop',
+                            ),
+                    ),
+                    const SizedBox(width: 10),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

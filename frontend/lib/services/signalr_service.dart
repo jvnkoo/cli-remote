@@ -6,6 +6,8 @@ class SignalRService {
 
   late HubConnection _hubConnection;
   void Function(Map<String, dynamic>)? onDataReceived;
+  Function()? onConnectionLost;
+  Function()? onConnectionSuccess;
 
   SignalRService._internal();
 
@@ -15,9 +17,20 @@ class SignalRService {
       url,
       HttpConnectionOptions(logging: (level, message) => print(message)),
     )
+        .withAutomaticReconnect()
         .build();
 
-    _hubConnection!.on('receiveStatus', (arguments) {
+    _hubConnection.onclose((error) {
+      print("Connection lost. Error: $error");
+      onConnectionLost?.call();
+    });
+
+    _hubConnection.onreconnecting((error) {
+      print("Reconnecting...");
+      onConnectionLost?.call();
+    });
+
+    _hubConnection.on('receiveStatus', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         final data = Map<String, dynamic>.from(arguments[0]);
         onDataReceived?.call(data);
@@ -26,17 +39,16 @@ class SignalRService {
   }
 
   Future<void> startConnection() async {
-    if (_hubConnection == null) {
-      throw Exception("HubConnection not initialized. Call initConnection(url) first.");
-    }
-    if (_hubConnection!.state == HubConnectionState.disconnected) {
-      await _hubConnection!.start();
+    if (_hubConnection.state == HubConnectionState.disconnected) {
+      await _hubConnection.start();
+      onConnectionSuccess?.call();
     }
   }
   
   Future<void> stopConnection() async {
     if (_hubConnection.state == HubConnectionState.connected) {
       await _hubConnection.stop();
+      onConnectionLost?.call();
     }
   }
   
