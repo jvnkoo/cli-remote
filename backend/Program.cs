@@ -12,6 +12,7 @@ public class program
 
         builder.Services.AddSingleton<SystemInfoService>();
         builder.Services.AddSingleton<SshService>();
+        builder.Services.AddSingleton<CliService>();
         builder.Services.AddHostedService<SystemMonitorWorker>();
         builder.Services.AddSignalR();
 

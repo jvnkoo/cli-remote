@@ -17,20 +17,15 @@ public class CliService
         _sudoPassword = password;
     }
     
-    public async Task<String> RunCommandAsync(string command, bool useSudo = false)
+    public async Task<String> RunCommandAsync(string command, bool useSudo = false, string? sudoPassword = null, string? workingDirectory = null)
     {
         if (useSudo)
         {
-            if (string.IsNullOrEmpty(_sudoPassword))
+            if (string.IsNullOrEmpty(sudoPassword))
             {
                 return "[ERROR]: Sudo password not set. Use 'Set Password' first.";
             }
-            command = $"echo '{_sudoPassword}' | sudo -S {command}";
-        }
-        
-        if (command.StartsWith("cd "))
-        {
-            return ChangeDirectory(command);
+            command = $"echo '{sudoPassword}' | sudo -S {command}";
         }
         
         var (shell, args) = ("/bin/sh", $"-c \"{command}\"");
@@ -39,7 +34,7 @@ public class CliService
         {
             var result = await Cli.Wrap(shell)
                 .WithArguments(args)
-                .WithWorkingDirectory(_currentDirectory)
+                .WithWorkingDirectory(workingDirectory)
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteBufferedAsync();
 
@@ -51,24 +46,24 @@ public class CliService
         }
     }
 
-    private string ChangeDirectory(string command)
-    {
-        string newPath = command.Substring(3).Trim();
-
-        if (newPath.StartsWith("~"))
-        {
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            newPath = newPath.Replace("~", home);
-        }
-
-        if (Directory.Exists(newPath))
-        {
-            _currentDirectory = Path.GetFullPath(newPath);
-            return $"[Changed directory to: {_currentDirectory}]";
-        }
-
-        return $"[ERROR]: Directory not found: {newPath}";
-    }
+    // private string ChangeDirectory(string command)
+    // {
+    //     string newPath = command.Substring(3).Trim();
+    //
+    //     if (newPath.StartsWith("~"))
+    //     {
+    //         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    //         newPath = newPath.Replace("~", home);
+    //     }
+    //
+    //     if (Directory.Exists(newPath))
+    //     {
+    //         _currentDirectory = Path.GetFullPath(newPath);
+    //         return $"[Changed directory to: {_currentDirectory}]";
+    //     }
+    //
+    //     return $"[ERROR]: Directory not found: {newPath}";
+    // }
     
     private string FormatResult(BufferedCommandResult result)
     {
