@@ -14,6 +14,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final ApiService _apiService = ApiService();
   final SignalRService _signalRService = SignalRService();
+  final GlobalKey<TerminalState> _terminalKey = GlobalKey<TerminalState>();
 
   String _displayText = "Server Disconnected.";
   bool _isConnecting = true;
@@ -54,6 +55,10 @@ class _MainScreenState extends State<MainScreen> {
 
   void _fetchInfo() async {}
 
+  void _clearHistory() {
+    _terminalKey.currentState?.clearHistory();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -68,7 +73,6 @@ class _MainScreenState extends State<MainScreen> {
         border: null,
       ),
       child: SafeArea(
-                child: Terminal(),
         child: Expanded(
           child: Column(
             // Removed Center, it can interfere with Expanded
@@ -79,7 +83,6 @@ class _MainScreenState extends State<MainScreen> {
                   CupertinoListTile(
                     leading: _isConnecting
                         ? const CupertinoActivityIndicator()
-                        : ActionButton(enabled: true, onTap: _fetchInfo, text: 'clear'),
                         : const Icon(CupertinoIcons.info),
                     title: Text(
                       _displayText,
@@ -92,6 +95,7 @@ class _MainScreenState extends State<MainScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Terminal(key: _terminalKey),
                 ),
               ),
               // Bottom buttons area
@@ -110,6 +114,14 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                     ),
                     const SizedBox(width: 10),
+                    Expanded(
+                      child: _isLoading
+                          ? const CupertinoActivityIndicator()
+                          : ActionButton(
+                              enabled: true,
+                              onTap: _clearHistory,
+                              text: 'clear',
+                            ),
                     ),
                   ],
                 ),

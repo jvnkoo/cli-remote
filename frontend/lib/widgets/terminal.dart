@@ -12,12 +12,12 @@ class Terminal extends StatefulWidget {
   const Terminal({super.key});
 
   @override
-  State<Terminal> createState() => _TerminalState();
+  State<Terminal> createState() => TerminalState();
 }
 
-class _TerminalState extends State<Terminal> {
+class TerminalState extends State<Terminal> {
   final SignalRService _signalRService = SignalRService();
-  final List<TerminalEntry> _history = [];
+  final List<TerminalEntry> history = [];
 
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -44,12 +44,18 @@ class _TerminalState extends State<Terminal> {
     super.dispose();
   }
 
+  void clearHistory() {
+    setState(() {
+      history.clear();
+    });
+  }
+
   void _addLog(String text) {
     final now = DateTime.now();
     final timeStr = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
     setState(() {
-      _history.add(TerminalEntry(timeStr, text));
+      history.add(TerminalEntry(timeStr, text));
     });
     _scrollToBottom();
   }
@@ -97,17 +103,17 @@ class _TerminalState extends State<Terminal> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
-      itemCount: _history.length,
+      itemCount: history.length,
       itemBuilder: (context, i) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: RichText(
           text: TextSpan(
             children: [
               TextSpan(
-                text: '${_history[i].timestamp} ',
+                text: '${history[i].timestamp} ',
                 style: _terminalStyle.copyWith(fontSize: 10, color: CupertinoColors.systemGrey),
               ),
-              TextSpan(text: _history[i].content, style: _terminalStyle),
+              TextSpan(text: history[i].content, style: _terminalStyle),
             ],
           ),
         ),
