@@ -47,7 +47,7 @@ class _SettingsScreen extends State<SettingsScreen> {
       print("Connection failed: $e");
     }
   }
-  
+
   Future<void> _disconnect() async {
     await _signalRService.stopConnection();
   }
@@ -116,62 +116,87 @@ class _SettingsScreen extends State<SettingsScreen> {
           padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
           child: Column(
             children: [
-              SettingsInputField(
-                label: "Host Address",
-                controller: _hostController,
-                placeholder: "127.0.0.1",
-                onChanged: (val) async {
-                  await _saveHostAddress(val);
-                  _syncConnectionData(); 
-                },
-              ),
-              SettingsInputField(
-                label: "URL",
-                controller: _urlController,
-                placeholder: "http://localhost:5050/systemHub",
-                onChanged: (val) => _saveURL(val),
-              ),
-              SizedBox(height: 12),
-              SettingsInputField(
-                label: "Linux Username",
-                controller: _userController,
-                placeholder: "username",
-                onChanged: (val) async {
-                  await _saveUsername(val);
-                  _syncConnectionData();
-                },
-              ),
-              SettingsInputField(
-                label: "Linux Password",
-                controller: _passController,
-                placeholder: "password",
-                obscureText: true,
-                onChanged: (val) async {
-                  await _savePassword(val);
-                  _syncConnectionData();
-                },
-              ),
-              SizedBox(height: 12),
-              SettingsInputField(
-                label: "sudo",
-                controller: _sudoController,
-                placeholder: "Sudo Password",
-                icon: CupertinoIcons.lock_fill,
-                obscureText: true,
-                onChanged: (val) => _saveSudoPassword(val),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: ActionButton(enabled: true, onTap: _connect, text: 'Connect'),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 12,
+                    ),
+                    child: Column(
+                      children: [
+                        SettingsInputField(
+                          label: "Host Address",
+                          controller: _hostController,
+                          placeholder: "127.0.0.1",
+                          onChanged: (val) async {
+                            await _saveHostAddress(val);
+                            _syncConnectionData();
+                          },
+                        ),
+                        SettingsInputField(
+                          label: "URL",
+                          controller: _urlController,
+                          placeholder: "http://localhost:5050/systemHub",
+                          onChanged: (val) => _saveURL(val),
+                        ),
+                        const SizedBox(height: 12),
+                        SettingsInputField(
+                          label: "Linux Username",
+                          controller: _userController,
+                          placeholder: "username",
+                          onChanged: (val) async {
+                            await _saveUsername(val);
+                            _syncConnectionData();
+                          },
+                        ),
+                        SettingsInputField(
+                          label: "Linux Password",
+                          controller: _passController,
+                          placeholder: "password",
+                          obscureText: true,
+                          onChanged: (val) async {
+                            await _savePassword(val);
+                            _syncConnectionData();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        SettingsInputField(
+                          label: "sudo",
+                          controller: _sudoController,
+                          placeholder: "Sudo Password",
+                          icon: CupertinoIcons.lock_fill,
+                          obscureText: true,
+                          onChanged: (val) => _saveSudoPassword(val),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ActionButton(enabled: true, onTap: _disconnect, text: 'Disconnect'),
-                  ),
-                ],
-              )
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ActionButton(
+                        enabled: true,
+                        onTap: _connect,
+                        text: 'Connect',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ActionButton(
+                        enabled: true,
+                        onTap: _disconnect,
+                        text: 'Disconnect',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
