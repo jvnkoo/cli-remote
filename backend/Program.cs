@@ -14,7 +14,10 @@ public class program
         builder.Services.AddSingleton<SshService>();
         builder.Services.AddSingleton<CliService>();
         builder.Services.AddHostedService<SystemMonitorWorker>();
-        builder.Services.AddSignalR();
+        builder.Services.AddSignalR(options =>
+        {
+            options.MaximumParallelInvocationsPerClient = 5;
+        });
 
         var app = builder.Build();
 

@@ -63,13 +63,23 @@ class SignalRService {
     }
     return "Connection is not open";
   }
-  
+
+  Future<void> stopCommand() async {
+    if (_hubConnection.state == HubConnectionState.connected) {
+      try {
+        await _hubConnection.invoke("StopCurrentCommand");
+      } catch (e) {
+        print("Error stopping command: $e");
+      }
+    }
+  }
+
   Future<void> updateSudoPassword(String password) async {
     if (_hubConnection.state == HubConnectionState.connected) {
       await _hubConnection.invoke("UpdateSudoPassword", args: [password]);
     }
   }
-  
+
   Future<void> updateConnectionData(String host, String user, String pass) async {
     if (_hubConnection.state == HubConnectionState.connected) {
       await _hubConnection.invoke("UpdateConnectionData", args: [host, user, pass]);

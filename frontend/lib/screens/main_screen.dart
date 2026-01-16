@@ -54,6 +54,10 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _fetchInfo() async {}
+  void _handleStop() async {
+    await _signalRService.stopCommand();
+    _terminalKey.currentState?.forceUnlock();
+  }
 
   void _clearHistory() {
     _terminalKey.currentState?.clearHistory();
@@ -82,6 +86,7 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   CupertinoListTile(
                     leading: _isConnecting
+                            onTap: _handleStop,
                         ? const CupertinoActivityIndicator()
                         : const Icon(CupertinoIcons.info),
                     title: Text(
@@ -109,7 +114,6 @@ class _MainScreenState extends State<MainScreen> {
                           ? const CupertinoActivityIndicator()
                           : ActionButton(
                               enabled: true,
-                              onTap: _fetchInfo,
                               text: 'stop',
                             ),
                     ),

@@ -51,7 +51,7 @@ public class SshService
         }
     }
 
-    public async Task<string> RunCommandAsync(string command, bool useSudo = false)
+    public async Task<string> RunCommandAsync(string command, bool useSudo = false, CancellationToken ct = default)
     {
         try
         {
@@ -70,8 +70,8 @@ public class SshService
             }
 
             string result = useSudo
-                ? await ExecuteSudoAsync(command)
-                : await ExecuteStandartAsync(command);
+                ? await ExecuteSudoAsync(command, ct)
+                : await ExecuteStandartAsync(command, ct);
 
             if (result.Contains("Authorization required") || result.Contains("cannot open display"))
             {
@@ -79,6 +79,10 @@ public class SshService
             }
 
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // throw for SystemHub
         }
         catch (Exception ex)
         {
@@ -121,35 +125,57 @@ public class SshService
         return $"[ERROR]: Directory not found: {targetPath}";
     }
 
-    private async Task<string> ExecuteStandartAsync(string command)
+    private async Task<string> ExecuteStandartAsync(string command, CancellationToken ct)
     {
-        // use RunCommand for common operations(faster and easier)
-        var sshCmd = _client!.CreateCommand($"cd {_currentDirectory} && sh -c '{command}'");
-        var result = await Task.Factory.FromAsync(sshCmd.BeginExecute(), sshCmd.EndExecute);
-
-        return string.IsNullOrWhiteSpace(result) && !string.IsNullOrEmpty(sshCmd.Error)
-            ? $"[STDERR]: {sshCmd.Error}"
-            : (string.IsNullOrWhiteSpace(result) ? "[Done]" : result);
-    }
-
-    private async Task<string> ExecuteSudoAsync(string command)
-    {
-        var fullCommand = $"cd {_currentDirectory} && echo '{_sudoPassword}' | sudo -S sh -c '{command}'";
-
-        var sshCmd = _client!.CreateCommand(fullCommand);
-
-        var result = await Task.Factory.FromAsync(sshCmd.BeginExecute(), sshCmd.EndExecute);
-
-        if (!string.IsNullOrEmpty(sshCmd.Error))
+        using var sshCmd = _client!.CreateCommand($"cd \"{_currentDirectory}\" && sh -c '{command}'");
+    
+        using (ct.Register(() => {
+                   try { sshCmd.Dispose(); } catch { }
+               }))
         {
-            var cleanError = sshCmd.Error.Replace($"[sudo] password for {_user}:", "").Trim();
-            if (!string.IsNullOrEmpty(cleanError))
+            try
             {
-                return $"[STDERR]: {cleanError}";
+                var result = await Task.Run(() => sshCmd.Execute(), ct);
+                return string.IsNullOrWhiteSpace(result) && !string.IsNullOrEmpty(sshCmd.Error)
+                    ? $"[STDERR]: {sshCmd.Error}"
+                    : (string.IsNullOrWhiteSpace(result) ? "[Done]" : result);
+            }
+            catch (Exception) when (ct.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(ct);
             }
         }
+    }
 
-        return string.IsNullOrWhiteSpace(result) ? "[Done]" : result;
+    private async Task<string> ExecuteSudoAsync(string command, CancellationToken ct)
+    {
+        var fullCommand = $"cd \"{_currentDirectory}\" && echo '{_sudoPassword}' | sudo -S sh -c '{command}'";
+        using var sshCmd = _client!.CreateCommand(fullCommand);
+
+        using (ct.Register(() => {
+                   try { sshCmd.Dispose(); } catch { }
+               }))
+        {
+            try
+            {
+                var result = await Task.Run(() => sshCmd.Execute(), ct);
+
+                if (!string.IsNullOrEmpty(sshCmd.Error))
+                {
+                    var cleanError = sshCmd.Error.Replace($"[sudo] password for {_user}:", "").Trim();
+                    if (!string.IsNullOrEmpty(cleanError))
+                    {
+                        return $"[STDERR]: {cleanError}";
+                    }
+                }
+
+                return string.IsNullOrWhiteSpace(result) ? "[Done]" : result;
+            }
+            catch (Exception) when (ct.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(ct);
+            }
+        }
     }
 
     public void Dispose()

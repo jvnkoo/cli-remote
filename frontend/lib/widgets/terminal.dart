@@ -81,6 +81,15 @@ class TerminalState extends State<Terminal> {
     final response = await _signalRService.sendCommand(command, command.startsWith("sudo"));
     if (mounted) _addLog('$_prompt$response');
     _inputFocus.requestFocus();
+  void forceUnlock() {
+    if (!_isProcessing) return;
+
+    setState(() => _isProcessing = false);
+    _addLog('\n[Terminated]');
+
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (mounted) _inputFocus.requestFocus();
+    });
   }
 
   @override
