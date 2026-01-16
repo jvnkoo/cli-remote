@@ -41,7 +41,14 @@ class SignalRService with ChangeNotifier {
 
   Future<void> startConnection() async {
     if (_hubConnection.state == HubConnectionState.disconnected) {
-      await _hubConnection.start();
+      try {
+        await _hubConnection.start();
+        print("Connected!");
+      } catch (e) {
+        print("SIGNALR ERROR: $e");
+        _lastData = {"os": "Error", "cpu": e.toString(), "ram": "check logs"};
+        notifyListeners();
+      }
       _isConnected = true;
       notifyListeners();
     }

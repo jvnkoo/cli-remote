@@ -9,6 +9,15 @@ public class program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
+        builder.Services.AddCors(options => {
+            options.AddPolicy("AllowAny", policy => {
+                policy.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .SetIsOriginAllowed(_ => true)
+                    .AllowCredentials();
+            });
+        });
 
         builder.Services.AddSingleton<SystemInfoService>();
         builder.Services.AddSingleton<SshService>();
@@ -21,6 +30,8 @@ public class program
 
         var app = builder.Build();
 
+        app.UseCors("AllowAny");
+        
         ConfigureEndpoints(app);
         ConfigureMapExtensions(app);
         
