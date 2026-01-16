@@ -1,39 +1,40 @@
 import 'package:signalr_core/signalr_core.dart';
+import 'package:flutter/foundation.dart';
 
-class SignalRService {
+class SignalRService with ChangeNotifier {
   static final SignalRService _instance = SignalRService._internal();
   factory SignalRService() => _instance;
 
   late HubConnection _hubConnection;
-  void Function(Map<String, dynamic>)? onDataReceived;
-  Function()? onConnectionLost;
-  Function()? onConnectionSuccess;
+
+  bool _isConnected = false;
+  bool get isConnected => _isConnected;
+
+  Map<String, dynamic>? _lastData;
+  Map<String, dynamic>? get lastData => _lastData;
 
   SignalRService._internal();
 
   void initConnection(String url) {
     _hubConnection = HubConnectionBuilder()
-        .withUrl(
-      url,
-      HttpConnectionOptions(logging: (level, message) => print(message)),
-    )
+        .withUrl(url, HttpConnectionOptions(logging: (level, message) => print(message)))
         .withAutomaticReconnect()
         .build();
 
     _hubConnection.onclose((error) {
-      print("Connection lost. Error: $error");
-      onConnectionLost?.call();
+      _isConnected = false;
+      notifyListeners();
     });
 
     _hubConnection.onreconnecting((error) {
-      print("Reconnecting...");
-      onConnectionLost?.call();
+      _isConnected = false;
+      notifyListeners();
     });
 
     _hubConnection.on('receiveStatus', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
-        final data = Map<String, dynamic>.from(arguments[0]);
-        onDataReceived?.call(data);
+        _lastData = Map<String, dynamic>.from(arguments[0]);
+        notifyListeners();
       }
     });
   }
@@ -41,17 +42,19 @@ class SignalRService {
   Future<void> startConnection() async {
     if (_hubConnection.state == HubConnectionState.disconnected) {
       await _hubConnection.start();
-      onConnectionSuccess?.call();
+      _isConnected = true;
+      notifyListeners();
     }
   }
-  
+
   Future<void> stopConnection() async {
     if (_hubConnection.state == HubConnectionState.connected) {
       await _hubConnection.stop();
-      onConnectionLost?.call();
+      _isConnected = false;
+      notifyListeners();
     }
   }
-  
+
   Future<String> sendCommand(String commandText, bool useSudo) async {
     if (_hubConnection.state == HubConnectionState.connected) {
       try {

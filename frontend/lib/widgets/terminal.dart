@@ -9,7 +9,8 @@ class TerminalEntry {
 }
 
 class Terminal extends StatefulWidget {
-  const Terminal({super.key});
+  final bool enabled;
+  const Terminal({super.key, required this.enabled});
 
   @override
   State<Terminal> createState() => TerminalState();
@@ -22,6 +23,8 @@ class TerminalState extends State<Terminal> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocus = FocusNode();
+
+  bool _isProcessing = false;
 
   static const _prompt = '\n~ ❯ ';
   static const _terminalStyle = TextStyle(
@@ -73,14 +76,26 @@ class TerminalState extends State<Terminal> {
   }
 
   Future<void> _executeCommand(String command) async {
-    if (command.trim().isEmpty) return;
+    if (command.trim().isEmpty || _isProcessing) return;
 
+    setState(() => _isProcessing = true);
     _addLog('$_prompt$command');
     _inputController.clear();
 
-    final response = await _signalRService.sendCommand(command, command.startsWith("sudo"));
-    if (mounted) _addLog('$_prompt$response');
-    _inputFocus.requestFocus();
+    try {
+      final response = await _signalRService.sendCommand(command, command.startsWith("sudo"));
+
+      if (mounted && _isProcessing) {
+        _addLog('$_prompt$response');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        _inputFocus.requestFocus();
+      }
+    }
+  }
+
   void forceUnlock() {
     if (!_isProcessing) return;
 
@@ -131,25 +146,36 @@ class TerminalState extends State<Terminal> {
   }
 
   Widget _buildInputField() {
+    final Color currentColor = widget.enabled
+        ? CupertinoColors.systemGreen
+        : CupertinoColors.systemGrey;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.5)),
+        border: Border.all(color: currentColor.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          const Text('> ', style: _terminalStyle),
+          Text('> ', style: _terminalStyle.copyWith(color: currentColor)),
           Expanded(
             child: CupertinoTextField(
+              enabled: widget.enabled && !_isProcessing,
               controller: _inputController,
               focusNode: _inputFocus,
               onSubmitted: _executeCommand,
               decoration: null,
-              style: _terminalStyle,
-              cursorColor: CupertinoColors.systemGreen,
+              style: _terminalStyle.copyWith(color: currentColor),
+              cursorColor: currentColor,
               padding: EdgeInsets.zero,
+              placeholder: widget.enabled ? null : "Connecting...",
+              placeholderStyle: TextStyle(
+                  color: CupertinoColors.systemGrey,
+                  fontFamily: 'Courier',
+                  fontSize: 14
+              ),
             ),
           ),
         ],

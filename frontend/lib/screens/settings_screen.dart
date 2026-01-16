@@ -5,7 +5,8 @@ import 'package:frontend/widgets/action_button.dart';
 import '../widgets/settings_input_field.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final bool isConnecting;
+  const SettingsScreen({super.key, required this.isConnecting});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreen();
@@ -176,20 +177,21 @@ class _SettingsScreen extends State<SettingsScreen> {
               ),
 
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Expanded(
                       child: ActionButton(
-                        enabled: true,
+                        enabled: widget.isConnecting,
                         onTap: _connect,
                         text: 'Connect',
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: ActionButton(
-                        enabled: true,
+                        enabled: !widget.isConnecting,
                         onTap: _disconnect,
                         text: 'Disconnect',
                       ),

@@ -5,7 +5,9 @@ import '../widgets/action_button.dart';
 import '../widgets/terminal.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final bool isConnecting;
+
+  const MainScreen({super.key, required this.isConnecting});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -17,43 +19,36 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<TerminalState> _terminalKey = GlobalKey<TerminalState>();
 
   String _displayText = "Server Disconnected.";
-  bool _isConnecting = true;
   final bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _signalRService.onDataReceived = (data) {
-      if (mounted) {
-        // Checking whether the user has closed the screen
-        setState(() {
-          _isConnecting = false;
-          _displayText =
-              "OS: ${data['os']} | CPU: ${data['cpu']} | RAM: ${data['ram']}";
-        });
-      }
-    };
-
-    _signalRService.onConnectionSuccess = () {
-      if (mounted) {
-        setState(() {
-          _isConnecting = false;
-          _displayText = "Connected. Waiting for data...";
-        });
-      }
-    };
-
-    _signalRService.onConnectionLost = () {
-      if (mounted) {
-        setState(() {
-          _isConnecting = true;
-          _displayText = "Server Disconnected. Retrying...";
-        });
-      }
-    };
+    _signalRService.addListener(_onServiceNotify);
   }
 
-  void _fetchInfo() async {}
+  @override
+  void dispose() {
+    _signalRService.removeListener(_onServiceNotify);
+    super.dispose();
+  }
+
+  void _onServiceNotify() {
+    if (!mounted) return;
+
+    final data = _signalRService.lastData;
+    setState(() {
+      if (!_signalRService.isConnected) {
+        _displayText = "Server Disconnected. Retrying...";
+      } else if (data != null) {
+        _displayText =
+            "OS: ${data['os']} | CPU: ${data['cpu']} | RAM: ${data['ram']}";
+      } else {
+        _displayText = "Connected. Waiting for data...";
+      }
+    });
+  }
+
   void _handleStop() async {
     await _signalRService.stopCommand();
     _terminalKey.currentState?.forceUnlock();
@@ -77,61 +72,62 @@ class _MainScreenState extends State<MainScreen> {
         border: null,
       ),
       child: SafeArea(
-        child: Expanded(
-          child: Column(
-            // Removed Center, it can interfere with Expanded
-            children: [
-              CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.all(16),
+        child: Column(
+          // Removed Center, it can interfere with Expanded
+          children: [
+            CupertinoListSection.insetGrouped(
+              margin: const EdgeInsets.all(16),
+              children: [
+                CupertinoListTile(
+                  leading: widget.isConnecting
+                      ? const CupertinoActivityIndicator()
+                      : const Icon(CupertinoIcons.info),
+                  title: Text(
+                    _displayText,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            // Use Expanded so the Terminal takes up all remaining space
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Terminal(
+                  key: _terminalKey,
+                  enabled: !widget.isConnecting,
+                ),
+              ),
+            ),
+            // Bottom buttons area
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  CupertinoListTile(
-                    leading: _isConnecting
-                            onTap: _handleStop,
+                  Expanded(
+                    child: _isLoading
                         ? const CupertinoActivityIndicator()
-                        : const Icon(CupertinoIcons.info),
-                    title: Text(
-                      _displayText,
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                        : ActionButton(
+                            enabled: !widget.isConnecting,
+                            onTap: _handleStop,
+                            text: 'Stop',
+                          ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _isLoading
+                        ? const CupertinoActivityIndicator()
+                        : ActionButton(
+                            enabled: !widget.isConnecting,
+                            onTap: _clearHistory,
+                            text: 'Clear',
+                          ),
                   ),
                 ],
               ),
-              // Use Expanded so the Terminal takes up all remaining space
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Terminal(key: _terminalKey),
-                ),
-              ),
-              // Bottom buttons area
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: _isLoading
-                          ? const CupertinoActivityIndicator()
-                          : ActionButton(
-                              enabled: true,
-                              text: 'stop',
-                            ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _isLoading
-                          ? const CupertinoActivityIndicator()
-                          : ActionButton(
-                              enabled: true,
-                              onTap: _clearHistory,
-                              text: 'clear',
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
