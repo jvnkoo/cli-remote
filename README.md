@@ -39,6 +39,11 @@ Backend powered by **ASP.NET Core + SignalR**, frontend built with **Flutter (Cu
 dotnet restore
 dotnet run
 ```
+or
+```bash
+docker compose up --build -d
+```
+
 > [!IMPORTANT]
 > Make sure the backend runs on a Linux system if you want full system monitoring support.
 ### Frontend
